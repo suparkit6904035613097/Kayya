@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ยาส่งไว – สั่งยาตามอาการ ส่งถึงบ้าน</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@500;600;700&family=Noto+Sans+Thai:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<style>
+:root{
+  --bg:#f3f7f6; --card:#ffffff; --ink:#10332a; --muted:#5d7a71;
+  --brand:#0e6b52; --brand-d:#0a4f3c; --pill:#f4a33a; --line:#d6e3df;
+  --alert:#b83a2e; --alert-bg:#fbeceb;
+  --font-d:'Prompt','Noto Sans Thai',sans-serif; --font-b:'Noto Sans Thai','Prompt',sans-serif;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font-b);line-height:1.65;font-size:16px}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--pill);outline-offset:2px}
+
+header{background:var(--brand-d);color:#fff}
+.bar{max-width:1080px;margin:auto;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.logo{font-family:var(--font-d);font-weight:700;font-size:22px;display:flex;align-items:center;gap:10px}
+.capsule{width:34px;height:16px;border-radius:9px;background:linear-gradient(90deg,var(--pill) 50%,#fff 50%);transform:rotate(-30deg);display:inline-block}
+nav{display:flex;gap:6px}
+nav button{background:transparent;border:1px solid rgba(255,255,255,.35);color:#fff;padding:7px 16px;border-radius:20px;cursor:pointer}
+nav button[aria-pressed="true"]{background:#fff;color:var(--brand-d);font-weight:600}
+
+.hero{max-width:1080px;margin:auto;padding:28px 20px 6px}
+.hero h1{font-family:var(--font-d);font-size:clamp(26px,4.2vw,40px);line-height:1.25;margin:0 0 6px}
+.hero p{margin:0;color:var(--muted);max-width:60ch}
+
+.warn{max-width:1080px;margin:14px auto 0;padding:0 20px}
+.warn div{background:var(--alert-bg);border:1px solid #efc4c0;color:#7c2a22;border-radius:10px;padding:10px 14px;font-size:14px}
+
+.layout{max-width:1080px;margin:auto;padding:18px 20px 60px;display:grid;grid-template-columns:1fr 340px;gap:22px;align-items:start}
+@media(max-width:860px){.layout{grid-template-columns:1fr}}
+section.step{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:16px}
+section.step h2{font-family:var(--font-d);font-size:19px;margin:0 0 12px}
+.hint{color:var(--muted);font-size:14px;margin:-6px 0 12px}
+
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px}
+.chip{border:1.5px solid var(--line);background:#fff;border-radius:12px;padding:12px 10px;cursor:pointer;text-align:left;display:flex;flex-direction:column;gap:2px;transition:border-color .15s,background .15s}
+.chip:hover{border-color:var(--brand)}
+.chip[aria-pressed="true"]{border-color:var(--brand);background:#e6f3ee;box-shadow:inset 0 0 0 1px var(--brand)}
+.chip .ic{font-size:24px}
+.chip b{font-weight:600}
+.sub{display:flex;flex-wrap:wrap;gap:8px}
+.sub .chip{padding:9px 14px;border-radius:22px;flex-direction:row;align-items:center}
+
+.med{display:grid;grid-template-columns:1fr auto;gap:4px 12px;align-items:center;padding:12px 0;border-top:1px dashed var(--line)}
+.med:first-of-type{border-top:0}
+.med .nm{font-weight:600}
+.med .ds{grid-column:1;color:var(--muted);font-size:14px}
+.med .pr{font-family:var(--font-d);font-weight:600;color:var(--brand-d)}
+.qty{display:flex;align-items:center;gap:8px;grid-row:1/3;grid-column:2;justify-self:end}
+.qty button{width:32px;height:32px;border-radius:50%;border:1.5px solid var(--brand);background:#fff;color:var(--brand);font-size:18px;cursor:pointer;line-height:1}
+.qty button:hover{background:var(--brand);color:#fff}
+.qty span{min-width:20px;text-align:center;font-weight:600}
+.med .pr{grid-column:1}
+
+label{display:block;font-weight:600;font-size:14px;margin:12px 0 4px}
+input,select,textarea{width:100%;padding:10px 12px;border:1.5px solid var(--line);border-radius:10px;background:#fff}
+input:focus,select:focus,textarea:focus{border-color:var(--brand)}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:560px){.row{grid-template-columns:1fr}}
+.btn{background:var(--brand);color:#fff;border:0;border-radius:10px;padding:12px 18px;font-weight:600;cursor:pointer;font-family:var(--font-d)}
+.btn:hover{background:var(--brand-d)}
+.btn.ghost{background:#fff;color:var(--brand);border:1.5px solid var(--brand)}
+.btn[disabled]{opacity:.45;cursor:not-allowed}
+.link{background:none;border:0;color:var(--brand);text-decoration:underline;cursor:pointer;padding:0}
+
+.ck{display:flex;gap:8px;align-items:flex-start;font-weight:400;margin:5px 0;font-size:15px}
+.ck input{width:auto;margin-top:6px;flex:none}
+.checks{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:0 16px}
+.rf{margin-top:16px;background:#fff8ec;border:1px solid #f0d49e;border-radius:10px;padding:12px 14px}
+.stop{margin-top:14px;background:var(--alert-bg);border:1.5px solid var(--alert);color:#7c2a22;border-radius:10px;padding:12px 16px}
+.stop ul{margin:6px 0}
+.rk{grid-column:1/-1;font-size:13.5px;border-radius:8px;padding:5px 10px}
+.rk.bad{background:var(--alert-bg);color:#7c2a22}
+.rk.warn{background:#fff3d6;color:#6b4500}
+.med.off .nm,.med.off .ds{opacity:.55}
+.qty button[disabled]{opacity:.35;cursor:not-allowed}
+.note{background:#eef5f3;border-radius:10px;padding:10px 14px;font-size:14px;margin:0 0 12px}
+.ph{display:grid;grid-template-columns:1fr auto;gap:2px 12px;width:100%;text-align:left;border:1.5px solid var(--line);background:#fff;border-radius:12px;padding:12px 14px;margin-bottom:8px;cursor:pointer}
+.ph:hover:not([disabled]){border-color:var(--brand)}
+.ph.sel{border-color:var(--brand);background:#e6f3ee;box-shadow:inset 0 0 0 1px var(--brand)}
+.ph[disabled]{opacity:.55;cursor:not-allowed}
+.ph .nm{font-weight:600}
+.ph .zn{font-size:13.5px;color:var(--muted);grid-column:1}
+.ph .fee{font-family:var(--font-d);font-weight:700;color:var(--brand-d);grid-row:1/3;grid-column:2;align-self:center;text-align:right}
+.ph .fee small{display:block;font-weight:400;font-size:12px;color:var(--muted)}
+.ph .miss{grid-column:1/-1;font-size:13px;color:#7c2a22}
+/* driver race */
+.drv{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;padding:10px 0;border-top:1px dashed var(--line)}
+.drv:first-child{border-top:0}
+.drv .nm{font-weight:600}
+.drv .zn{font-size:13px;color:var(--muted)}
+.track{height:8px;border-radius:5px;background:#e6eeeb;overflow:hidden;margin-top:4px}
+.track i{display:block;height:100%;background:var(--line)}
+.drv.best .track i{background:var(--pill)}
+.drv.best{background:#fff8ec;margin:0 -10px;padding:10px;border-radius:10px;border-top-color:transparent}
+.drv .eta{font-family:var(--font-d);font-weight:700;text-align:right;white-space:nowrap}
+.drv.busy{opacity:.45}
+.badge{display:inline-block;background:var(--pill);color:#4a2c00;border-radius:12px;padding:1px 10px;font-size:12px;font-weight:600;margin-left:6px}
+.avatar{width:38px;height:38px;border-radius:50%;background:var(--brand);color:#fff;display:grid;place-items:center;font-family:var(--font-d);font-weight:600}
+
+aside.sum{position:sticky;top:12px;background:var(--card);border:1.5px solid var(--ink);border-radius:14px;padding:18px}
+aside.sum h2{font-family:var(--font-d);margin:0 0 8px;font-size:18px}
+.line{display:flex;justify-content:space-between;gap:10px;padding:5px 0;font-size:15px}
+.line.total{border-top:2px solid var(--ink);margin-top:8px;padding-top:10px;font-family:var(--font-d);font-weight:700;font-size:19px}
+.empty{color:var(--muted);font-size:14px}
+
+.done{background:#e6f3ee;border:1.5px solid var(--brand);border-radius:14px;padding:18px;margin-bottom:16px}
+.done h2{margin:0 0 6px;font-family:var(--font-d)}
+
+/* admin */
+.admin{max-width:1080px;margin:auto;padding:22px 20px 60px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:16px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.stat small{color:var(--muted)}
+.stat b{display:block;font-family:var(--font-d);font-size:26px}
+.tw{overflow-x:auto;background:var(--card);border:1px solid var(--line);border-radius:12px}
+table{border-collapse:collapse;width:100%;min-width:760px;font-size:14.5px}
+th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{background:#eaf2ef;font-weight:600}
+.mode{font-size:13px;padding:4px 12px;border-radius:14px;background:rgba(255,255,255,.15)}
+[hidden]{display:none!important}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<header>
+  <div class="bar">
+    <div class="logo"><span class="capsule" aria-hidden="true"></span>ยาส่งไว</div>
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+      <span class="mode" id="mode"></span>
+      <nav aria-label="เมนูหลัก">
+        <button id="tabShop" aria-pressed="true">สั่งยา</button>
+        <button id="tabAdmin" aria-pressed="false">ฝั่งร้าน</button>
+      </nav>
+    </div>
+  </div>
+</header>
+
+<!-- ===== หน้าลูกค้า ===== -->
+<div id="shop">
+  <div class="hero">
+    <h1>บอกอาการ แล้วเราส่งยาให้ถึงบ้าน</h1>
+    <p>เลือกอาการ เลือกยา กรอกที่อยู่ ระบบจะหาคนขับที่ใกล้ที่สุดให้อัตโนมัติ</p>
+  </div>
+  <div class="warn"><div><b>ข้อควรระวัง:</b> ยาในเว็บนี้เป็นยาสามัญที่ซื้อได้ทั่วไป ใช้ตามฉลาก หากมีอาการรุนแรง เช่น หายใจลำบาก เจ็บหน้าอก ปวดหัวรุนแรงฉับพลัน ไข้สูงเกิน 3 วัน หรือแพ้ยา ให้ไปพบแพทย์/เภสัชกร หรือโทร 1669</div></div>
+
+  <div class="layout">
+    <div id="main">
+      <section class="step">
+        <h2>1. คุณมีอาการอะไร</h2>
+        <div class="grid" id="symptoms"></div>
+      </section>
+
+      <section class="step" id="subStep" hidden>
+        <h2 id="subTitle">2. ลักษณะอาการ</h2>
+        <div class="sub" id="subs"></div>
+      </section>
+
+      <section class="step" id="healthStep" hidden>
+        <h2>3. ข้อมูลสุขภาพของผู้ใช้ยา</h2>
+        <p class="hint">ระบบจะกรองยาที่ไม่เหมาะกับคุณออกให้ และบันทึกข้อมูลนี้กับออเดอร์เพื่อให้เภสัชกรตรวจสอบ</p>
+        <div class="row">
+          <div><label for="age">อายุของผู้ใช้ยา (ปี)</label><input id="age" type="number" min="0" max="120" inputmode="numeric"></div>
+          <div><label for="preg">ตั้งครรภ์ / ให้นมบุตร</label>
+            <select id="preg"><option value="">– เลือก –</option><option value="no">ไม่ใช่</option><option value="preg">ตั้งครรภ์</option><option value="bf">ให้นมบุตร</option></select></div>
+        </div>
+        <label for="days">เป็นมานานเท่าไร</label>
+        <select id="days"><option value="">– เลือก –</option><option value="1">ไม่เกิน 1 วัน</option><option value="2">2 วัน</option><option value="3">3 วัน</option><option value="5">4–5 วัน</option><option value="7">6–7 วัน</option><option value="14">มากกว่า 7 วัน</option></select>
+        <label>มีประวัติแพ้ยาหรือไม่ (ติ๊กได้หลายข้อ ถ้าไม่มีไม่ต้องติ๊ก)</label>
+        <div class="checks" id="hAllergy">
+          <label class="ck"><input type="checkbox" value="allergy_para" data-t="แพ้พาราเซตามอล"><span>พาราเซตามอล</span></label>
+          <label class="ck"><input type="checkbox" value="allergy_nsaid" data-t="แพ้ยากลุ่ม NSAIDs"><span>ยาแก้ปวดกลุ่ม NSAIDs (ไอบูโพรเฟน แอสไพริน ไดโคลฟีแนค)</span></label>
+          <label class="ck"><input type="checkbox" value="allergy_anti" data-t="แพ้ยาแก้แพ้"><span>ยาแก้แพ้ (คลอร์เฟนิรามีน ลอราทาดีน)</span></label>
+          <label class="ck"><input type="checkbox" value="allergy_iodine" data-t="แพ้ไอโอดีน"><span>ไอโอดีน/โพวิโดน</span></label>
+        </div>
+        <input id="allergyOther" placeholder="แพ้ยาอื่นๆ (ถ้ามี) เช่น เพนิซิลลิน" style="margin-top:6px">
+        <label>โรคประจำตัว / ยาที่ใช้อยู่</label>
+        <div class="checks" id="hCond">
+          <label class="ck"><input type="checkbox" value="ulcer" data-t="โรคกระเพาะ/เลือดออกทางเดินอาหาร"><span>โรคกระเพาะ แผลในกระเพาะ หรือเคยมีเลือดออกในทางเดินอาหาร</span></label>
+          <label class="ck"><input type="checkbox" value="kidney" data-t="โรคไต"><span>โรคไต</span></label>
+          <label class="ck"><input type="checkbox" value="liver" data-t="โรคตับ/ดื่มแอลกอฮอล์ประจำ"><span>โรคตับ หรือดื่มแอลกอฮอล์เป็นประจำ</span></label>
+          <label class="ck"><input type="checkbox" value="bp" data-t="ความดันสูง/โรคหัวใจ"><span>ความดันโลหิตสูง หรือโรคหัวใจ</span></label>
+          <label class="ck"><input type="checkbox" value="asthma" data-t="หอบหืด"><span>หอบหืด</span></label>
+          <label class="ck"><input type="checkbox" value="anticoag" data-t="ทานยาละลายลิ่มเลือด/แอสไพริน"><span>ทานยาละลายลิ่มเลือดหรือแอสไพรินอยู่</span></label>
+          <label class="ck"><input type="checkbox" value="onmeds" data-t="ทานยาประจำตัวอื่นอยู่"><span>ทานยาประจำตัวอื่นอยู่</span></label>
+        </div>
+        <div class="rf"><b>คุณมีอาการเตือนเหล่านี้หรือไม่ (ติ๊กถ้ามี)</b>
+          <div id="flags"></div></div>
+        <div class="stop" id="stopBox" role="alert" hidden></div>
+        <p class="empty" id="healthHint" style="margin:12px 0 0">กรอกอายุ ตั้งครรภ์/ให้นมบุตร และระยะเวลาที่เป็นให้ครบ จึงจะเห็นรายการยา</p>
+      </section>
+
+      <section class="step" id="medStep" hidden>
+        <h2>4. เลือกยา</h2>
+        <p class="hint">ระบบแนะนำยาที่พบบ่อยสำหรับอาการนี้ กด + เพื่อเพิ่มลงตะกร้า</p>
+        <div id="meds"></div>
+      </section>
+
+      <section class="step" id="addrStep" hidden>
+        <h2>5. ที่อยู่จัดส่ง</h2>
+        <div class="row">
+          <div><label for="cname">ชื่อผู้รับ</label><input id="cname" autocomplete="name"></div>
+          <div><label for="cphone">เบอร์โทร</label><input id="cphone" inputmode="tel" autocomplete="tel" placeholder="08x-xxx-xxxx"></div>
+        </div>
+        <label for="dist">เขต/ย่านของคุณ</label>
+        <select id="dist"></select>
+        <label for="addr">ที่อยู่ละเอียด (บ้านเลขที่ ซอย ถนน จุดสังเกต)</label>
+        <textarea id="addr" rows="3"></textarea>
+        <p class="hint" style="margin-top:8px">แม่นยำขึ้นได้ถ้า <button class="link" id="geo" type="button">ใช้ตำแหน่งปัจจุบันของฉัน</button> <span id="geoStat"></span></p>
+      </section>
+
+      <section class="step" id="pharmStep" hidden>
+        <h2>6. ร้านยาที่คนขับจะไปซื้อให้</h2>
+        <div class="note">เราเป็นตัวกลาง: คนขับไปซื้อยาที่ร้านยาให้คุณ <b>ราคายาเท่ากับหน้าร้าน</b> เราคิดเฉพาะค่าส่ง <b>5 บาท ต่อ 100 เมตร</b> (วัดจากร้านยาถึงบ้านคุณ) ชื่อร้านยาในเว็บนี้เป็นร้านสมมุติเพื่อการเรียน</div>
+        <div id="pharms"></div>
+      </section>
+
+      <section class="step" id="drvStep" hidden>
+        <h2>7. คนขับที่จะไปรับยาให้</h2>
+        <div id="drivers"></div>
+      </section>
+    </div>
+
+    <aside class="sum" aria-live="polite">
+      <h2>ตะกร้าของคุณ</h2>
+      <div id="cart"><p class="empty">ยังไม่มียาในตะกร้า</p></div>
+      <button class="btn" id="order" style="width:100%;margin-top:14px" disabled>สั่งซื้อและเรียกคนขับ</button>
+      <p class="empty" id="orderHint" style="margin:8px 0 0">กรอกข้อมูลสุขภาพ เลือกยา ชื่อ เบอร์ และที่อยู่ให้ครบก่อน</p>
+    </aside>
+  </div>
+</div>
+
+<!-- ===== หน้าร้าน ===== -->
+<div id="admin" class="admin" hidden>
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;gap:10px;flex-wrap:wrap">
+    <h2 style="font-family:var(--font-d);margin:0">ออเดอร์ทั้งหมด</h2>
+    <div style="display:flex;gap:8px">
+      <button class="btn ghost" id="refresh">รีเฟรช</button>
+      <button class="btn ghost" id="resetDrivers">ให้คนขับว่างทั้งหมด</button>
+    </div>
+  </div>
+  <div class="stats" id="stats"></div>
+  <div class="tw"><table>
+    <thead><tr><th>เวลา</th><th>ผู้สั่ง</th><th>สั่งยาอะไร</th><th>ยอดรวม</th><th>คนขับ</th><th>สถานะ</th></tr></thead>
+    <tbody id="orders"></tbody>
+  </table></div>
+
+  <h2 style="font-family:var(--font-d);margin:32px 0 6px">สต็อกยาแต่ละร้าน</h2>
+  <p class="hint" id="stockSum" style="margin:0 0 10px"></p>
+  <label for="stockPh" style="margin-top:0">เลือกร้านยา</label>
+  <select id="stockPh" style="max-width:360px;margin-bottom:12px"></select>
+  <div class="tw"><table style="min-width:480px">
+    <thead><tr><th>ยา</th><th>คงเหลือ (ชิ้น)</th><th>เติมสต็อก</th></tr></thead>
+    <tbody id="stockRows"></tbody>
+  </table></div>
+</div>
+
+<script>
+/* ============ ตั้งค่า Supabase ============
+   ใส่ค่าจาก Supabase > Project Settings > API
+   ถ้าเว้นว่าง เว็บจะทำงานโหมดทดลอง (เก็บออเดอร์ในเครื่องเท่านั้น) */
+const SUPABASE_URL = "https://gbfxbobhmfyuznyyhvyi.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_eSD1GRaCPx5D8CdTRVwbLQ_nSSaSPhe";
+
+let sb = null;
+try { if (SUPABASE_URL && SUPABASE_ANON_KEY && window.supabase) sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY); } catch(e){ console.error(e); }
+document.getElementById('mode').textContent = sb ? 'เชื่อมต่อ Supabase แล้ว' : 'โหมดทดลอง (ยังไม่เชื่อม Supabase)';
+
+/* ============ ข้อมูลยา ============ */
+const MEDS = {
+  para:{name:'พาราเซตามอล 500 มก. (10 เม็ด)',price:25,desc:'ลดไข้ แก้ปวดทั่วไป ใช้ตามฉลาก ห้ามเกินขนาดที่กำหนด'},
+  ibu:{name:'ไอบูโพรเฟน 200 มก. (10 เม็ด)',price:40,desc:'แก้ปวดอักเสบ ควรทานหลังอาหาร ไม่เหมาะกับผู้ที่มีโรคกระเพาะ/โรคไต'},
+  balm:{name:'ยาดมสมุนไพร',price:25,desc:'บรรเทาวิงเวียน คัดจมูกเล็กน้อย'},
+  cool:{name:'เจลแปะลดไข้/ประคบเย็น (3 แผ่น)',price:59,desc:'แปะหน้าผากหรือขมับเพื่อให้รู้สึกเย็นสบาย'},
+  oil:{name:'ครีมนวดแก้ปวดกล้ามเนื้อ',price:89,desc:'ทาเฉพาะที่ ห้ามทาบริเวณแผลเปิด'},
+  patch:{name:'แผ่นแปะแก้ปวดกล้ามเนื้อ (5 แผ่น)',price:79,desc:'แปะบริเวณคอ บ่า หลัง'},
+  ors:{name:'เกลือแร่ ORS (5 ซอง)',price:45,desc:'ทดแทนน้ำและเกลือแร่เมื่อท้องเสียหรือมีไข้'},
+  charcoal:{name:'ผงถ่านบรรเทาท้องเสีย (10 เม็ด)',price:30,desc:'ช่วยดูดซับสารระคายเคืองในลำไส้'},
+  simet:{name:'ซิเมทิโคน (10 เม็ด)',price:35,desc:'ลดอาการท้องอืด แน่นท้อง'},
+  antac:{name:'ยาลดกรดชนิดเม็ดเคี้ยว (20 เม็ด)',price:35,desc:'บรรเทาแสบร้อนกลางอก กรดไหลย้อน'},
+  hyo:{name:'ยาแก้ปวดเกร็งท้อง (10 เม็ด)',price:60,desc:'บรรเทาปวดบิดเกร็งในช่องท้อง'},
+  loz:{name:'ยาอมแก้เจ็บคอ (16 เม็ด)',price:45,desc:'บรรเทาเจ็บคอ ระคายคอ'},
+  spray:{name:'สเปรย์พ่นคอ',price:120,desc:'พ่นเฉพาะที่ บรรเทาเจ็บคอ'},
+  cough:{name:'ยาแก้ไอน้ำแดง (60 มล.)',price:45,desc:'บรรเทาอาการไอแห้ง/ไอระคายคอ'},
+  mucus:{name:'ยาละลายเสมหะ (บรอมเฮกซีน)',price:60,desc:'ช่วยให้เสมหะขับออกง่ายขึ้น'},
+  cpm:{name:'ยาแก้แพ้ คลอร์เฟนิรามีน 4 มก. (10 เม็ด)',price:20,desc:'ลดน้ำมูก คัน จาม แต่ทำให้ง่วง ห้ามขับรถหลังทาน'},
+  lora:{name:'ลอราทาดีน 10 มก. (10 เม็ด)',price:50,desc:'ยาแก้แพ้ชนิดไม่ง่วง'},
+  saline:{name:'น้ำเกลือพ่นจมูก (30 มล.)',price:90,desc:'ล้างจมูก ลดคัดจมูก ปลอดภัยกับคนส่วนใหญ่'},
+  calam:{name:'คาลาไมน์โลชั่น (60 มล.)',price:40,desc:'บรรเทาผื่นคัน ลมพิษ ยุงกัด'},
+  povi:{name:'โพวิโดน ไอโอดีน (15 มล.)',price:35,desc:'ทำความสะอาดแผลสด'},
+  plast:{name:'พลาสเตอร์ปิดแผล (20 แผ่น)',price:30,desc:'ปิดแผลถลอกเล็กน้อย'},
+  gauze:{name:'ผ้าก๊อซปลอดเชื้อ (5 ชิ้น)',price:25,desc:'ปิดแผลที่ใหญ่ขึ้น'},
+  therm:{name:'ปรอทวัดไข้ดิจิทัล',price:99,desc:'วัดอุณหภูมิร่างกาย'}
+};
+
+/* อาการหลัก 1 อย่าง (ปวดหัว มีลักษณะย่อย) + อาการอื่นอีก 10 อย่าง */
+const SYMPTOMS = [
+ {id:'head',ic:'🤕',name:'ปวดหัว',subs:[
+   {n:'ปวดตรงขมับ (ตุบๆ)',m:['para','cool','balm']},
+   {n:'ปวดตึงท้ายทอย/ต้นคอ',m:['para','oil','patch']},
+   {n:'ปวดตึงรอบหัวเหมือนมีอะไรรัด',m:['para','ibu','balm']},
+   {n:'ปวดหัวข้างเดียว คลื่นไส้ แพ้แสง',m:['para','cool']},
+   {n:'ปวดบริเวณหน้าผาก/โหนกแก้ม (คัดจมูกร่วม)',m:['para','saline','cpm']}]},
+ {id:'fever',ic:'🌡️',name:'ไข้',subs:[
+   {n:'ไข้ต่ำ ตัวอุ่น',m:['para','ors','therm']},
+   {n:'ไข้สูง หนาวสั่น',m:['para','cool','ors','therm']}]},
+ {id:'cough',ic:'😮‍💨',name:'ไอ',subs:[
+   {n:'ไอแห้ง ระคายคอ',m:['cough','loz']},
+   {n:'ไอมีเสมหะ',m:['mucus','saline']}]},
+ {id:'throat',ic:'🗣️',name:'เจ็บคอ',subs:[
+   {n:'เจ็บแสบคอ กลืนลำบาก',m:['loz','spray','para']},
+   {n:'คันคอ ระคายคอ',m:['loz','cough']}]},
+ {id:'nose',ic:'🤧',name:'น้ำมูก/คัดจมูก',subs:[
+   {n:'น้ำมูกใส จาม',m:['lora','cpm','saline']},
+   {n:'คัดจมูกมาก หายใจไม่โล่ง',m:['saline','balm']}]},
+ {id:'stomach',ic:'😣',name:'ปวดท้อง',subs:[
+   {n:'ปวดบิดเป็นพักๆ',m:['hyo','simet']},
+   {n:'ปวดแสบลิ้นปี่',m:['antac','simet']}]},
+ {id:'diarr',ic:'🚽',name:'ท้องเสีย',subs:[
+   {n:'ถ่ายเหลว 1-3 ครั้ง',m:['ors','charcoal']},
+   {n:'ถ่ายเหลวบ่อย อ่อนเพลีย',m:['ors','charcoal','hyo']}]},
+ {id:'bloat',ic:'🎈',name:'ท้องอืด/กรดไหลย้อน',subs:[
+   {n:'ท้องอืด แน่น เรอบ่อย',m:['simet','antac']},
+   {n:'แสบร้อนกลางอก เปรี้ยวในคอ',m:['antac']}]},
+ {id:'muscle',ic:'💪',name:'ปวดกล้ามเนื้อ',subs:[
+   {n:'ปวดหลัง/บ่า/ไหล่',m:['oil','patch','ibu']},
+   {n:'ปวดขา/น่อง หลังออกกำลังกาย',m:['oil','ibu','patch']}]},
+ {id:'allergy',ic:'🌼',name:'ภูมิแพ้/ผื่นคัน',subs:[
+   {n:'ผื่นแดง คัน ลมพิษ',m:['lora','calam']},
+   {n:'ยุง/แมลงกัด',m:['calam','cpm']}]},
+ {id:'wound',ic:'🩹',name:'แผลถลอก/มีดบาดเล็กน้อย',subs:[
+   {n:'แผลถลอกตื้น',m:['povi','plast']},
+   {n:'แผลบาดยาวกว่า 1 ซม.',m:['povi','gauze','plast']}]}
+];
+
+/* ============ ความปลอดภัยของผู้ใช้ยา ============ */
+const TOKEN_TH = {
+ allergy_para:'แพ้พาราเซตามอล', allergy_nsaid:'แพ้ยากลุ่ม NSAIDs', allergy_anti:'แพ้ยาแก้แพ้', allergy_iodine:'แพ้ไอโอดีน',
+ preg:'ตั้งครรภ์/ให้นมบุตร', ulcer:'โรคกระเพาะ/เลือดออกทางเดินอาหาร', kidney:'โรคไต', liver:'โรคตับ/ดื่มแอลกอฮอล์ประจำ',
+ bp:'ความดันสูง/โรคหัวใจ', asthma:'หอบหืด', anticoag:'ทานยาละลายลิ่มเลือด/แอสไพริน', onmeds:'ทานยาประจำอื่นอยู่', age65:'อายุ 65 ปีขึ้นไป'
+};
+/* avoid = ไม่ให้สั่ง, caution = เตือนให้ปรึกษาเภสัชกร (ข้อมูลเพื่อการเรียน ไม่ใช่คำแนะนำทางการแพทย์) */
+const RISK = {
+ para:{avoid:['allergy_para','liver']},
+ ibu:{avoid:['allergy_nsaid','preg','ulcer','kidney','asthma','anticoag'],caution:['bp','age65']},
+ oil:{caution:['preg']}, patch:{caution:['preg']},
+ ors:{caution:['kidney','bp']}, charcoal:{caution:['onmeds']}, antac:{caution:['kidney','onmeds']},
+ hyo:{avoid:['preg'],caution:['age65']},
+ cough:{caution:['preg','asthma','onmeds']}, mucus:{avoid:['preg'],caution:['ulcer','asthma']},
+ cpm:{avoid:['allergy_anti','preg'],caution:['age65','asthma']},
+ lora:{avoid:['allergy_anti'],caution:['preg','kidney','liver']},
+ povi:{avoid:['allergy_iodine'],caution:['preg']}
+};
+const MAXDAYS = {fever:3, diarr:2};  /* อื่นๆ ใช้ 7 วัน */
+const RED_FLAGS = {
+ head:['ปวดหัวรุนแรงฉับพลัน แบบที่ไม่เคยเป็นมาก่อน','ไข้สูงร่วมกับคอแข็งก้มหน้าไม่ได้','แขนขาอ่อนแรง พูดไม่ชัด หรือปากเบี้ยว','มองเห็นภาพซ้อนหรือตามัวฉับพลัน','ปวดหัวหลังศีรษะถูกกระแทก หรือมีอาเจียนพุ่ง','ชัก สับสน หรือซึมลง'],
+ fever:['ไข้สูงเกิน 39.5 °C หรือหนาวสั่นรุนแรง','หายใจลำบาก หอบเหนื่อย','ซึม สับสน หรือไม่รู้สึกตัวดี','มีจุดเลือดออกตามตัว เลือดออกผิดปกติ หรืออาเจียนไม่หยุด','ปวดท้องมาก หรือปัสสาวะน้อยมาก'],
+ cough:['ไอเป็นเลือด','หายใจลำบากหรือหอบเหนื่อย','เจ็บหน้าอกขณะไอหรือหายใจ','ไข้สูงร่วมกับไอเสมหะเหลืองเขียว'],
+ throat:['กลืนน้ำลายไม่ได้หรือน้ำลายไหล','หายใจเสียงดัง หรือหายใจลำบาก','คอบวมมาก หรืออ้าปากไม่ได้','ไข้สูงร่วมกับทอนซิลบวมเป็นหนอง'],
+ nose:['ปวดบวมรอบดวงตา หรือตามัว','น้ำมูกปนเลือดปริมาณมาก','ปวดหูมาก หรือมีหนองไหลจากหู','คัดจมูกพร้อมไข้สูง ปวดหน้าผากรุนแรง'],
+ stomach:['ปวดท้องรุนแรงฉับพลัน หรือท้องแข็งตึง','อาเจียนเป็นเลือด หรือถ่ายอุจจาระสีดำ','ปวดท้องด้านขวาล่างร่วมกับไข้','เจ็บหน้าอก เหงื่อแตก หรือใจสั่นร่วมด้วย'],
+ diarr:['ถ่ายมีเลือดหรือมูกเลือด','อุจจาระสีดำ','อาเจียนไม่หยุด ดื่มน้ำไม่ได้','ปากแห้ง ปัสสาวะน้อย ซึม (สัญญาณขาดน้ำ)','ไข้สูงร่วมกับถ่ายเหลว'],
+ bloat:['เจ็บหน้าอกร้าวไปแขนหรือกราม','กลืนลำบาก หรืออาหารติดคอ','อาเจียนเป็นเลือด หรือถ่ายดำ','น้ำหนักลดโดยไม่ทราบสาเหตุ'],
+ muscle:['แขนขาอ่อนแรงหรือชา','ปวดหลังจากอุบัติเหตุหรือหกล้มรุนแรง','กลั้นปัสสาวะหรืออุจจาระไม่อยู่','ขาบวมแดงร้อนข้างเดียว'],
+ allergy:['หน้า ปาก หรือลิ้นบวม','หายใจลำบากหรือแน่นคอ','ผื่นทั่วตัวร่วมกับเวียนหัว ใจสั่น หรือหน้ามืด','ผื่นพุพอง ลอก หรือมีแผลในปาก/ตา'],
+ wound:['เลือดไม่หยุดหลังกดแผลต่อเนื่อง 10 นาที','แผลลึกจนเห็นไขมันหรือกล้ามเนื้อ','มีสิ่งแปลกปลอมฝังในแผล','ถูกสัตว์กัด หรือตะปู/โลหะสนิมตำ (อาจต้องฉีดวัคซีน)','แผลบวมแดง มีหนอง และมีไข้']
+};
+
+function profile(){
+  const age = parseInt($('age').value,10), t = new Set();
+  if(!isNaN(age) && age >= 65) t.add('age65');
+  if(['preg','bf'].includes($('preg').value)) t.add('preg');
+  document.querySelectorAll('#hAllergy input:checked, #hCond input:checked').forEach(c => t.add(c.value));
+  return {age, tokens:t};
+}
+function riskOf(id){
+  const r = RISK[id] || {}, {tokens} = profile();
+  return {avoid:(r.avoid||[]).filter(x=>tokens.has(x)), caution:(r.caution||[]).filter(x=>tokens.has(x))};
+}
+function healthOk(){
+  const a = parseInt($('age').value,10);
+  return !isNaN(a) && a>=0 && a<=120 && $('preg').value!=='' && $('days').value!=='';
+}
+function stopReasons(){
+  const out = []; if(!S.symptom) return out;
+  const {age} = profile();
+  if(!isNaN(age) && age < 12) out.push('ผู้ใช้ยาอายุต่ำกว่า 12 ปี ขนาดยาต้องคำนวณตามน้ำหนักตัว เว็บนี้จึงยังไม่รับสั่งยาสำหรับเด็ก ควรปรึกษาเภสัชกรหรือกุมารแพทย์');
+  document.querySelectorAll('#flags input:checked').forEach(c => out.push('มีอาการเตือน: ' + c.dataset.t));
+  const days = +$('days').value, max = MAXDAYS[S.symptom.id] || 7;
+  if(days && days > max) out.push(`อาการ${S.symptom.name}เป็นมานานกว่า ${max} วันแล้ว ควรให้แพทย์ตรวจก่อนใช้ยา`);
+  return out;
+}
+function healthSummary(){
+  const lab = sel => [...document.querySelectorAll(sel + ' input:checked')].map(c => c.dataset.t);
+  const other = $('allergyOther').value.trim();
+  return {age:parseInt($('age').value,10), pregnancy:$('preg').value,
+    allergies:[...lab('#hAllergy'), ...(other ? ['อื่นๆ: '+other] : [])].join(', ') || 'ไม่มี',
+    conditions:lab('#hCond').join(', ') || 'ไม่มี', duration_days:+$('days').value};
+}
+function renderHealth(){
+  const f = S.symptom ? RED_FLAGS[S.symptom.id] : [];
+  $('flags').innerHTML = f.map(t => `<label class="ck"><input type="checkbox" data-t="${esc(t)}"><span>${esc(t)}</span></label>`).join('');
+}
+
+/* ============ ร้านยาสมมุติ (ใช้ชื่อสมมุติ ไม่ใช่ร้านจริง) ============ */
+const PHARMACIES = [
+ {id:1,name:'ร้านยาสุขใจฟาร์มา',zone:'สยาม',lat:13.7462,lng:100.5290},
+ {id:2,name:'เภสัชใจดี ลาดพร้าว',zone:'ลาดพร้าว',lat:13.8040,lng:100.5610},
+ {id:3,name:'ร้านยามิตรเภสัช',zone:'อโศก',lat:13.7390,lng:100.5630},
+ {id:4,name:'ร้านยาบ้านหมอนิ่ม',zone:'บางนา',lat:13.6700,lng:100.6050},
+ {id:5,name:'ฟ้าใสเภสัช ตลิ่งชัน',zone:'ตลิ่งชัน',lat:13.7790,lng:100.4600},
+ {id:6,name:'ร้านยาเพื่อนสุขภาพ',zone:'ธนบุรี',lat:13.7250,lng:100.4900},
+ {id:7,name:'ร้านยาสายรุ้ง รามคำแหง',zone:'รามคำแหง',lat:13.7560,lng:100.6250}
+];
+/* ============ สต็อกยาของแต่ละร้าน ============ */
+let STOCK = {}, stockSource = 'local';   /* 'db' = อ่าน/ตัดสต็อกจาก Supabase (ตาราง pharm_stock) */
+const stockOf = (pid, mid) => (STOCK[pid] && STOCK[pid][mid]) || 0;
+const maxAnywhere = mid => Math.max(0, ...PHARMACIES.map(p => stockOf(p.id, mid)));
+const shortName = id => MEDS[id].name.split(' (')[0];
+function defaultStock(){
+  const st = {};
+  PHARMACIES.forEach(p => { st[p.id] = {};
+    Object.keys(MEDS).forEach(id => {
+      const h = (p.id*131 + [...id].reduce((a,c)=>a*31+c.charCodeAt(0),7)) >>> 0;
+      st[p.id][id] = h % 21;               /* 0-20 ชิ้น (บางตัวหมด) */
+    }); });
+  return st;
+}
+function saveStockLocal(){ try{ localStorage.setItem('yasongwai_stock', JSON.stringify(STOCK)); }catch(e){} }
+STOCK = defaultStock();
+const feeFor = m => BASE_FEE + Math.max(1, Math.ceil(m/100)) * FEE_PER_100M;
+const fmtDist = m => m < 1000 ? m + ' ม.' : (m/1000).toFixed(1) + ' กม.';
+
+/* ============ คนขับสมมุติ 5 คน ============ */
+const DEFAULT_DRIVERS = [
+ {id:1,name:'สมชาย ใจดี',phone:'081-234-5601',zone:'ลาดพร้าว',lat:13.8159,lng:100.5613,available:true},
+ {id:2,name:'วิชัย รักเร็ว',phone:'081-234-5602',zone:'สีลม',lat:13.7262,lng:100.5342,available:true},
+ {id:3,name:'ปรีชา คล่องแคล่ว',phone:'081-234-5603',zone:'อารีย์',lat:13.7797,lng:100.5446,available:true},
+ {id:4,name:'นันทวัฒน์ ขับดี',phone:'081-234-5604',zone:'บางนา',lat:13.6682,lng:100.6049,available:true},
+ {id:5,name:'อนุชา ส่งไว',phone:'081-234-5605',zone:'ตลิ่งชัน',lat:13.7770,lng:100.4590,available:true}
+];
+let drivers = JSON.parse(JSON.stringify(DEFAULT_DRIVERS));
+
+const DISTRICTS = [
+ ['สยาม/ปทุมวัน',13.7455,100.5340],['สีลม/บางรัก',13.7262,100.5342],['สุขุมวิท/อโศก',13.7370,100.5600],
+ ['อารีย์/พญาไท',13.7797,100.5446],['จตุจักร',13.8030,100.5530],['ลาดพร้าว',13.8159,100.5613],
+ ['รามคำแหง',13.7550,100.6270],['บางนา',13.6682,100.6049],['ธนบุรี',13.7230,100.4870],
+ ['ตลิ่งชัน',13.7770,100.4590],['บางแค',13.7110,100.4060],['ดอนเมือง',13.9130,100.6040]
+];
+
+/* ============ state ============ */
+const S = {symptom:null, sub:null, cart:{}, lat:null, lng:null, best:null, stop:false, pharm:null, pharmChoice:null};
+const FEE_PER_100M = 5, BASE_FEE = 0, PICKUP_MIN = 5, SPEED_KMH = 25;  /* ค่าส่ง = 5 บาท ต่อ 100 เมตร */
+const $ = id => document.getElementById(id);
+const baht = n => '฿' + Number(n).toLocaleString('th-TH');
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+function km(a,b,c,d){ // haversine
+  const R=6371, r=x=>x*Math.PI/180, dLat=r(c-a), dLng=r(d-b);
+  const h=Math.sin(dLat/2)**2+Math.cos(r(a))*Math.cos(r(c))*Math.sin(dLng/2)**2;
+  return 2*R*Math.asin(Math.sqrt(h)) * 1.3; // x1.3 ประมาณระยะทางถนนจริง
+}
+
+/* ============ render ขั้นตอน ============ */
+function renderSymptoms(){
+  $('symptoms').innerHTML = SYMPTOMS.map(s =>
+    `<button class="chip" data-id="${s.id}" aria-pressed="${S.symptom?.id===s.id}"><span class="ic">${s.ic}</span><b>${s.name}</b></button>`).join('');
+  $('symptoms').querySelectorAll('.chip').forEach(b => b.onclick = () => {
+    S.symptom = SYMPTOMS.find(x => x.id === b.dataset.id); S.sub = null;
+    renderSymptoms(); renderSubs(); renderHealth(); renderMeds();
+    $('subStep').scrollIntoView({behavior:'smooth',block:'nearest'});
+  });
+}
+function renderSubs(){
+  $('subStep').hidden = !S.symptom; if(!S.symptom) return;
+  $('subTitle').textContent = '2. ' + S.symptom.name + ' แบบไหน';
+  $('subs').innerHTML = S.symptom.subs.map((x,i) =>
+    `<button class="chip" data-i="${i}" aria-pressed="${S.sub===x}">${esc(x.n)}</button>`).join('');
+  $('subs').querySelectorAll('.chip').forEach(b => b.onclick = () => {
+    S.sub = S.symptom.subs[+b.dataset.i]; renderSubs(); renderMeds();
+    $('medStep').scrollIntoView({behavior:'smooth',block:'nearest'});
+  });
+}
+function pruneCart(){
+  Object.keys(S.cart).forEach(id => {
+    const mx = maxAnywhere(id);
+    if(riskOf(id).avoid.length || mx===0) delete S.cart[id]; else if(S.cart[id] > mx) S.cart[id] = mx;
+  });
+}
+function renderMeds(){
+  $('healthStep').hidden = !S.sub;
+  const stops = S.sub ? stopReasons() : [];
+  S.stop = stops.length > 0;
+  $('stopBox').hidden = !S.stop;
+  $('stopBox').innerHTML = S.stop ? '<b>ไม่ควรสั่งยาผ่านเว็บในตอนนี้</b><ul>' + stops.map(x=>`<li>${esc(x)}</li>`).join('') + '</ul><p style="margin:0">กรุณาพบแพทย์หรือเภสัชกร หากฉุกเฉินให้โทร <b>1669</b> ทันที</p>' : '';
+  const ok = healthOk();
+  $('healthHint').hidden = ok || S.stop;
+  const show = !!S.sub && !S.stop && ok;
+  $('medStep').hidden = !show; $('addrStep').hidden = !show; $('drvStep').hidden = !show; $('pharmStep').hidden = !show;
+  if(!show){ renderCart(); return; }
+  pruneCart();
+  const ids = S.sub.m, risks = ids.map(riskOf), why = a => a.map(t => TOKEN_TH[t]).join(', ');
+  let html = ids.map((id,i) => {
+    const m = MEDS[id], q = S.cart[id] || 0, r = risks[i], bad = r.avoid.length > 0, mx = maxAnywhere(id), gone = mx===0, capped = q >= mx;
+    return `<div class="med${(bad||gone)?' off':''}"><div class="nm">${m.name}</div>
+      <div class="qty"><button type="button" data-a="-" data-id="${id}" aria-label="ลด ${m.name}" ${q?'':'disabled'}>−</button><span>${q}</span><button type="button" data-a="+" data-id="${id}" aria-label="เพิ่ม ${m.name}" ${(bad||gone||capped)?'disabled':''}>+</button></div>
+      <div class="ds">${m.desc}</div>
+      ${gone ? '<div class="rk bad">ยาหมดทุกร้านตอนนี้</div>' : ''}
+      ${bad ? `<div class="rk bad">ไม่เหมาะกับคุณ (${why(r.avoid)}) – ไม่แนะนำให้ใช้</div>` : ''}
+      ${!bad && r.caution.length ? `<div class="rk warn">ควรระวัง (${why(r.caution)}) – ปรึกษาเภสัชกรก่อนใช้</div>` : ''}
+      <div class="pr">${baht(m.price)}</div></div>`;
+  }).join('');
+  if(risks.every(r => r.avoid.length)) html += '<p class="empty">ยาที่ระบบแนะนำทั้งหมดไม่เหมาะกับข้อมูลสุขภาพของคุณ กรุณาปรึกษาเภสัชกรก่อน</p>';
+  $('meds').innerHTML = html;
+  $('meds').querySelectorAll('button').forEach(b => b.onclick = () => {
+    const id = b.dataset.id, d = b.dataset.a === '+' ? 1 : -1;
+    if(d > 0 && (riskOf(id).avoid.length || (S.cart[id]||0) >= maxAnywhere(id))) return;
+    S.cart[id] = Math.max(0, (S.cart[id]||0) + d); if(!S.cart[id]) delete S.cart[id];
+    renderMeds();
+  });
+  renderDrivers();
+}
+
+function cartItems(){ return Object.entries(S.cart).map(([id,q]) => ({id, name:MEDS[id].name, price:MEDS[id].price, qty:q})); }
+function medTotal(){ return cartItems().reduce((t,i)=>t+i.price*i.qty,0); }
+
+function computePharmacies(){
+  if(S.lat==null) return [];
+  const items = cartItems();
+  return PHARMACIES.map(p => {
+    const distM = Math.round(km(p.lat,p.lng,S.lat,S.lng)*1000);
+    const missing = items.filter(i => stockOf(p.id,i.id) < i.qty).map(i => ({id:i.id, have:stockOf(p.id,i.id), need:i.qty}));
+    return {...p, distM, missing, items, ok:missing.length===0, fee:feeFor(distM)};
+  }).sort((x,y) => (y.ok - x.ok) || (x.distM - y.distM));
+}
+function renderPharmacies(){
+  const list = computePharmacies();
+  S.pharm = list.find(p => p.id===S.pharmChoice && p.ok) || list.find(p => p.ok) || null;
+  if(!list.length){ $('pharms').innerHTML = '<p class="empty">เลือกเขต/ย่านของคุณก่อน แล้วระบบจะหาร้านยาที่ใกล้ที่สุดให้</p>'; return; }
+  const firstOk = list.find(p => p.ok);
+  $('pharms').innerHTML = list.map(p => `
+    <button type="button" class="ph${S.pharm&&p.id===S.pharm.id?' sel':''}" data-id="${p.id}" ${p.ok?'':'disabled'}>
+      <div class="nm">${esc(p.name)}${firstOk&&p.id===firstOk.id?'<span class="badge">ใกล้สุด</span>':''}</div>
+      <div class="zn">ย่าน${esc(p.zone)} · ห่างจากคุณ ${fmtDist(p.distM)}</div>
+      ${p.items.length ? `<div class="zn">สต็อก: ${p.items.map(i => esc(shortName(i.id)) + ' ' + stockOf(p.id,i.id) + ' ชิ้น').join(' · ')}</div>` : ''}
+      <div class="fee">${baht(p.fee)}<small>ค่าส่ง</small></div>
+      ${p.ok?'':`<div class="miss">สต็อกไม่พอ: ${p.missing.map(m => esc(shortName(m.id)) + ` (มี ${m.have} ต้องการ ${m.need})`).join(', ')}</div>`}
+    </button>`).join('') + (firstOk ? '' : '<p class="empty">ไม่มีร้านที่มียาครบตามจำนวนในตะกร้า ลองลดจำนวนหรือรายการยา</p>');
+  $('pharms').querySelectorAll('.ph').forEach(b => b.onclick = () => { S.pharmChoice = +b.dataset.id; renderDrivers(); });
+}
+function computeDrivers(){
+  if(!S.pharm) return [];
+  return drivers.map(d => {
+    const toShop = km(d.lat,d.lng,S.pharm.lat,S.pharm.lng);
+    const eta = Math.round(toShop/SPEED_KMH*60 + PICKUP_MIN + S.pharm.distM/1000/SPEED_KMH*60);
+    return {...d, dist:toShop, eta};
+  }).sort((x,y)=> (y.available - x.available) || (x.eta - y.eta));
+}
+function renderDrivers(){
+  renderPharmacies();
+  const list = computeDrivers();
+  S.best = list.find(d => d.available) || null;
+  if(!list.length){ $('drivers').innerHTML = '<p class="empty">เลือกเขต/ย่านและร้านยาก่อน แล้วระบบจะเปรียบเทียบคนขับให้</p>'; renderCart(); return; }
+  const maxD = Math.max(...list.map(d=>d.dist)) || 1;
+  $('drivers').innerHTML = list.map(d => `
+    <div class="drv ${S.best&&d.id===S.best.id?'best':''} ${d.available?'':'busy'}">
+      <div class="avatar" aria-hidden="true">${esc(d.name[0])}</div>
+      <div><div class="nm">${esc(d.name)}${S.best&&d.id===S.best.id?'<span class="badge">เร็วสุด</span>':''}${d.available?'':'<span class="badge" style="background:#ddd">ไม่ว่าง</span>'}</div>
+        <div class="zn">ประจำย่าน${esc(d.zone)} · ห่างจาก${esc(S.pharm.name)} ${d.dist.toFixed(1)} กม.</div>
+        <div class="track"><i style="width:${Math.max(6,100-d.dist/maxD*100)}%"></i></div></div>
+      <div class="eta">~${d.eta} นาที</div>
+    </div>`).join('') + (S.best ? '' : '<p class="empty">ตอนนี้คนขับทุกคนไม่ว่าง ลองใหม่อีกครั้งหรือกด "ให้คนขับว่างทั้งหมด" ในหน้าฝั่งร้าน</p>');
+  renderCart();
+}
+
+function renderCart(){
+  const items = cartItems();
+  if(!items.length){ $('cart').innerHTML = '<p class="empty">ยังไม่มียาในตะกร้า</p>'; }
+  else{
+    const med = medTotal();
+    const fee = (S.best && S.pharm) ? S.pharm.fee : null;
+    $('cart').innerHTML = items.map(i => `<div class="line"><span>${esc(i.name)} ×${i.qty}</span><span>${baht(i.price*i.qty)}</span></div>`).join('')
+      + `<div class="line"><span>ค่ายา (ราคาเท่าร้านยา)</span><span>${baht(med)}</span></div>`
+      + `<div class="line"><span>ค่าส่ง ${S.pharm?`(${fmtDist(S.pharm.distM)})`:''}</span><span>${fee==null?'–':baht(fee)}</span></div>`
+      + `<div class="line total"><span>รวมทั้งหมด</span><span>${fee==null?baht(med):baht(med+fee)}</span></div>`
+      + (S.best && S.pharm ? `<div class="line" style="color:var(--muted);font-size:14px"><span>ซื้อที่ ${esc(S.pharm.name)}</span></div><div class="line" style="color:var(--muted);font-size:14px"><span>คนขับ: ${esc(S.best.name)}</span><span>~${S.best.eta} นาที</span></div>` : '');
+  }
+  const ok = items.length && $('cname').value.trim() && $('cphone').value.trim() && $('addr').value.trim() && S.best && S.pharm && !S.stop && healthOk();
+  $('order').disabled = !ok;
+  $('orderHint').hidden = !!ok;
+}
+
+/* ============ ที่อยู่ ============ */
+$('dist').innerHTML = '<option value="">– เลือกเขต/ย่าน –</option>' + DISTRICTS.map((d,i)=>`<option value="${i}">${d[0]}</option>`).join('');
+$('dist').onchange = () => {
+  const d = DISTRICTS[$('dist').value];
+  if(d){ S.lat = d[1]; S.lng = d[2]; $('geoStat').textContent=''; } else { S.lat = S.lng = null; }
+  renderDrivers();
+};
+$('geo').onclick = () => {
+  if(!navigator.geolocation){ $('geoStat').textContent = 'เบราว์เซอร์นี้ไม่รองรับ'; return; }
+  $('geoStat').textContent = 'กำลังหาตำแหน่ง…';
+  navigator.geolocation.getCurrentPosition(
+    p => { S.lat = p.coords.latitude; S.lng = p.coords.longitude; $('geoStat').textContent = 'ใช้ตำแหน่งปัจจุบันแล้ว'; renderDrivers(); },
+    () => { $('geoStat').textContent = 'ขอตำแหน่งไม่สำเร็จ กรุณาเลือกเขต/ย่านแทน'; },
+    {timeout:8000});
+};
+['cname','cphone','addr'].forEach(id => $(id).addEventListener('input', renderCart));
+
+/* ============ เก็บข้อมูล (Supabase หรือในเครื่อง) ============ */
+let localOrders = [];
+try { localOrders = JSON.parse(localStorage.getItem('yasongwai_orders')||'[]'); } catch(e){}
+function saveLocal(){ try{ localStorage.setItem('yasongwai_orders', JSON.stringify(localOrders)); }catch(e){} }
+
+async function loadDrivers(){
+  if(!sb) return;
+  const {data,error} = await sb.from('pharm_drivers').select('*').order('id');
+  if(error){ console.error(error); return; }
+  if(data && data.length) drivers = data;
+  renderDrivers();
+}
+
+$('order').onclick = async () => {
+  const best = S.best; if(!best || !S.pharm || S.stop || !healthOk()) return;
+  const med = medTotal(), fee = S.pharm.fee;
+  const order = {
+    customer_name:$('cname').value.trim(), phone:$('cphone').value.trim(), address:$('addr').value.trim(),
+    district: DISTRICTS[$('dist').value]?.[0] || 'ตำแหน่งปัจจุบัน', lat:S.lat, lng:S.lng,
+    symptom:S.symptom.name, sub_symptom:S.sub.n, items:cartItems(), ...healthSummary(),
+    medicine_total:med, delivery_fee:fee, total:med+fee,
+    pharmacy_id:S.pharm.id, pharmacy_name:S.pharm.name, distance_m:S.pharm.distM,
+    driver_id:best.id, driver_name:best.name, eta_min:best.eta, status:'new'
+  };
+  if(order.items.some(i => stockOf(S.pharm.id, i.id) < i.qty)){ alert('ยาในสต็อกของร้านนี้ไม่พอ กรุณาเลือกร้านหรือจำนวนใหม่'); renderDrivers(); return; }
+  $('order').disabled = true; $('order').textContent = 'กำลังส่งออเดอร์…';
+  try{
+    const take = order.items.map(i => ({id:i.id, qty:i.qty})), phId = S.pharm.id;
+    if(stockSource === 'db'){
+      const {error:se} = await sb.rpc('pharm_take_stock', {p_pharmacy:phId, p_items:take}); if(se) throw se;
+    } else {
+      take.forEach(i => { STOCK[phId][i.id] = Math.max(0, stockOf(phId,i.id) - i.qty); }); saveStockLocal();
+    }
+    if(sb){
+      const {error} = await sb.from('pharm_orders').insert(order); if(error) throw error;
+      await sb.from('pharm_drivers').update({available:false}).eq('id',best.id);
+    } else {
+      localOrders.unshift({...order, id:crypto.randomUUID?.()||String(Date.now()), created_at:new Date().toISOString()}); saveLocal();
+    }
+    const d = drivers.find(x=>x.id===best.id); if(d) d.available = false;
+    showDone(order, best);
+    if(stockSource === 'db') loadStock();
+  }catch(e){
+    console.error(e); if(String(e.message||'').includes('insufficient')){ alert('ยาในสต็อกไม่พอ (อาจมีคนสั่งตัดหน้า) กรุณาเลือกใหม่'); loadStock(); } else alert('สั่งซื้อไม่สำเร็จ: ' + (e.message||e)); 
+  }finally{ $('order').textContent = 'สั่งซื้อและเรียกคนขับ'; }
+};
+
+function showDone(o, d){
+  const box = document.createElement('div'); box.className = 'done';
+  box.innerHTML = `<h2>สั่งซื้อสำเร็จ</h2>
+    <p style="margin:0">${esc(d.name)} (โทร ${esc(d.phone)}) กำลังไปซื้อยาที่ <b>${esc(o.pharmacy_name)}</b> แล้วนำส่งให้คุณ จะถึงที่อยู่ของคุณใน <b>ประมาณ ${o.eta_min} นาที</b><br>ยอดชำระ ${baht(o.total)} (ชำระเงินสดปลายทาง)</p>
+    <button class="btn" style="margin-top:12px" id="again">สั่งยาเพิ่ม</button>`;
+  $('main').prepend(box); window.scrollTo({top:0,behavior:'smooth'});
+  $('again').onclick = () => { box.remove(); S.symptom=null; S.sub=null; S.cart={}; ['cname','cphone','addr'].forEach(i=>$(i).value=''); $('dist').value=''; S.lat=S.lng=null;
+    renderSymptoms(); renderSubs(); renderHealth(); renderMeds(); renderCart(); };
+  S.cart = {}; renderMeds(); renderCart();
+}
+
+/* ============ หน้าร้าน ============ */
+async function loadOrders(){
+  let rows = localOrders;
+  if(sb){
+    const {data,error} = await sb.from('pharm_orders').select('*').order('created_at',{ascending:false}).limit(200);
+    if(error){ alert('โหลดออเดอร์ไม่สำเร็จ: '+error.message); return; }
+    rows = data;
+  }
+  const sum = rows.reduce((t,o)=>t+Number(o.total),0);
+  const medSum = rows.reduce((t,o)=>t+Number(o.medicine_total||0),0);
+  const feeSum = rows.reduce((t,o)=>t+Number(o.delivery_fee||0),0);
+  $('stats').innerHTML = `<div class="stat"><small>จำนวนออเดอร์</small><b>${rows.length}</b></div>
+    <div class="stat"><small>ยอดเก็บจากลูกค้ารวม</small><b>${baht(sum)}</b></div>
+    <div class="stat"><small>ค่ายา (จ่ายต่อให้ร้านยา)</small><b>${baht(medSum)}</b></div>
+    <div class="stat"><small>รายได้ค่าส่ง (กำไรของเรา)</small><b>${baht(feeSum)}</b></div>`;
+  $('orders').innerHTML = rows.length ? rows.map(o => `<tr>
+    <td>${new Date(o.created_at).toLocaleString('th-TH',{dateStyle:'short',timeStyle:'short'})}</td>
+    <td><b>${esc(o.customer_name)}</b><br>${esc(o.phone)}<br><small>${esc(o.district)}</small>${o.age!=null?`<br><small>อายุ ${esc(o.age)} ปี · แพ้ยา: ${esc(o.allergies)}<br>โรค/ยาประจำ: ${esc(o.conditions)}</small>`:''}</td>
+    <td>${(o.items||[]).map(i=>`${esc(i.name)} ×${i.qty}`).join('<br>')}<br><small>ซื้อที่: ${esc(o.pharmacy_name||'-')}${o.distance_m!=null?' · ส่ง '+esc(fmtDist(o.distance_m)):''}</small><br><small>อาการ: ${esc(o.symptom)} – ${esc(o.sub_symptom)}</small></td>
+    <td><b>${baht(o.total)}</b><br><small>ยา ${baht(o.medicine_total)} (ให้ร้านยา)<br>ค่าส่ง ${baht(o.delivery_fee)} (กำไรเรา)</small></td>
+    <td>${esc(o.driver_name)}<br><small>~${o.eta_min} นาที</small></td>
+    <td>${esc(o.status)}</td></tr>`).join('')
+    : '<tr><td colspan="6" class="empty" style="padding:20px">ยังไม่มีออเดอร์ ลองสั่งยาจากหน้า "สั่งยา" ดู</td></tr>';
+}
+async function loadStock(){
+  if(sb){
+    const {data,error} = await sb.from('pharm_stock').select('*');
+    if(!error && data && data.length){
+      STOCK = {}; PHARMACIES.forEach(p => STOCK[p.id] = {});
+      data.forEach(r => { (STOCK[r.pharmacy_id] = STOCK[r.pharmacy_id] || {})[r.med_id] = r.qty; });
+      stockSource = 'db'; renderMeds(); return;
+    }
+  }
+  let saved = null;
+  try{ saved = JSON.parse(localStorage.getItem('yasongwai_stock') || 'null'); }catch(e){}
+  STOCK = saved || defaultStock(); stockSource = 'local'; renderMeds();
+}
+async function restock(pid, mid, add){
+  const nq = stockOf(pid, mid) + add;
+  if(stockSource === 'db'){
+    const {error} = await sb.from('pharm_stock').upsert({pharmacy_id:pid, med_id:mid, qty:nq});
+    if(error){ alert('เติมสต็อกไม่สำเร็จ: ' + error.message); return; }
+  }
+  STOCK[pid] = STOCK[pid] || {}; STOCK[pid][mid] = nq; saveStockLocal(); renderStock();
+}
+function renderStock(){
+  const sel = $('stockPh');
+  if(!sel.options.length) sel.innerHTML = PHARMACIES.map(p => `<option value="${p.id}">${esc(p.name)}</option>`).join('');
+  const pid = +sel.value || PHARMACIES[0].id;
+  const total = Object.values(STOCK[pid] || {}).reduce((a,b) => a+b, 0);
+  $('stockSum').textContent = `รวมทั้งร้าน ${total} ชิ้น · ข้อมูลสต็อกจาก ${stockSource==='db' ? 'Supabase' : 'โหมดทดลอง (เก็บในเครื่องนี้)'}`;
+  $('stockRows').innerHTML = Object.keys(MEDS).map(id => {
+    const q = stockOf(pid, id);
+    const tag = q===0 ? '<span style="color:#b83a2e;font-weight:600">หมด</span>' : q<=5 ? '<span style="color:#9a6200;font-weight:600">เหลือน้อย</span>' : '';
+    return `<tr><td>${esc(MEDS[id].name)}</td><td><b>${q}</b> ${tag}</td><td><button class="btn ghost" style="padding:6px 12px" data-id="${id}">+10</button></td></tr>`;
+  }).join('');
+  $('stockRows').querySelectorAll('button').forEach(b => b.onclick = () => restock(pid, b.dataset.id, 10));
+}
+$('stockPh').onchange = renderStock;
+$('refresh').onclick = () => { loadOrders(); loadStock().then(renderStock); };
+$('resetDrivers').onclick = async () => {
+  drivers.forEach(d => d.available = true);
+  if(sb) await sb.from('pharm_drivers').update({available:true}).gte('id',0);
+  renderDrivers(); alert('ตั้งค่าคนขับทุกคนเป็นว่างแล้ว');
+};
+
+/* ============ แท็บ ============ */
+function tab(name){
+  $('shop').hidden = name!=='shop'; $('admin').hidden = name!=='admin';
+  $('tabShop').setAttribute('aria-pressed', name==='shop'); $('tabAdmin').setAttribute('aria-pressed', name==='admin');
+  if(name==='admin'){ loadOrders(); loadStock().then(renderStock); } else { loadDrivers(); loadStock(); }
+}
+$('tabShop').onclick = () => tab('shop'); $('tabAdmin').onclick = () => tab('admin');
+
+['input','change'].forEach(ev => $('healthStep').addEventListener(ev, renderMeds));
+renderSymptoms(); renderCart(); loadDrivers(); loadStock();
+</script>
+</body>
+</html>
